@@ -13,15 +13,15 @@ export CUDA_DEVICE_MAX_CONNECTIONS=1 # For megatron communication/computation ov
 export VLLM_ALLREDUCE_USE_SYMM_MEM=0 # for vllm0.11.0 with TP
 
 
-HF_MODEL_PATH=${HF_MODEL_PATH:-"${RAY_DATA_HOME}/models/Qwen3-VL-8B-Instruct"}
+HF_MODEL_PATH=Qwen/Qwen3-VL-2B-Thinking
 
 GEN_TP=${GEN_TP:-4}
 CP=${CP:-2}
 TP=${TP:-2}
 PP=${PP:-2}
 
-train_path=$HOME/data/geo3k/train.parquet
-test_path=$HOME/data/geo3k/test.parquet
+train_path=/data/hf_cache/hub/datasets--tyzhu--geo3k/snapshots/0324da994443cc2da0b49d3b56b82ebdcd5511b7/train.parquet
+test_path=/data/hf_cache/hub/datasets--tyzhu--geo3k/snapshots/0324da994443cc2da0b49d3b56b82ebdcd5511b7/test.parquet
 
 python3 -m verl.trainer.main_ppo --config-path=config \
     --config-name='ppo_megatron_trainer.yaml'\
@@ -29,8 +29,8 @@ python3 -m verl.trainer.main_ppo --config-path=config \
     data.train_files="$train_path" \
     data.val_files="$test_path" \
     data.train_batch_size=512 \
-    data.max_prompt_length=1024 \
-    data.max_response_length=2048 \
+    data.max_prompt_length=4096 \
+    data.max_response_length=8192 \
     data.filter_overlong_prompts=True \
     data.truncation='error' \
     actor_rollout_ref.model.path=$HF_MODEL_PATH \
@@ -55,7 +55,7 @@ python3 -m verl.trainer.main_ppo --config-path=config \
     actor_rollout_ref.rollout.name=$ENGINE \
     +actor_rollout_ref.rollout.engine_kwargs.vllm.disable_mm_preprocessor_cache=True \
     actor_rollout_ref.rollout.gpu_memory_utilization=0.7 \
-    actor_rollout_ref.rollout.n=5 \
+    actor_rollout_ref.rollout.n=8 \
     actor_rollout_ref.ref.log_prob_micro_batch_size_per_gpu=1 \
     actor_rollout_ref.actor.megatron.use_mbridge=True \
     actor_rollout_ref.actor.megatron.param_offload=True \
@@ -78,9 +78,9 @@ python3 -m verl.trainer.main_ppo --config-path=config \
     trainer.critic_warmup=0 \
     trainer.logger='["console","wandb"]' \
     trainer.project_name='verl_grpo_example_geo3k' \
-    trainer.experiment_name='qwen3_vl_8b_megatron' \
+    trainer.experiment_name='qwen3_vl_2b_thinking_megatron_geo3k_test' \
     trainer.n_gpus_per_node=8 \
     trainer.nnodes=1 \
-    trainer.save_freq=20 \
-    trainer.test_freq=5 \
+    trainer.save_freq=500 \
+    trainer.test_freq=10 \
     trainer.total_epochs=15 $@
