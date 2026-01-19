@@ -1,10 +1,10 @@
 set -x
 ENGINE=${1:-vllm}
 
-train_path=/data/hf_cache/hub/datasets--tyzhu--geo3k/snapshots/0324da994443cc2da0b49d3b56b82ebdcd5511b7/train.parquet
-test_path=/data/hf_cache/hub/datasets--tyzhu--geo3k/snapshots/0324da994443cc2da0b49d3b56b82ebdcd5511b7/test.parquet
+train_path=/data/data/geo3k/train.parquet
+test_path=/data/data/geo3k/test.parquet
 
-python3 -m verl.trainer.main_ppo \
+uv run python -m verl.trainer.main_ppo \
     algorithm.adv_estimator=grpo \
     data.train_files=$train_path \
     data.val_files=$test_path \
@@ -14,7 +14,7 @@ python3 -m verl.trainer.main_ppo \
     data.filter_overlong_prompts=True \
     data.truncation='error' \
     data.image_key=images \
-    actor_rollout_ref.model.path=Qwen/Qwen3-VL-8B-Thinking \
+    actor_rollout_ref.model.path=/data/model_weights/Qwen3-VL-8B-Thinking \
     actor_rollout_ref.actor.optim.lr=1e-6 \
     actor_rollout_ref.model.use_remove_padding=True \
     actor_rollout_ref.model.use_fused_kernels=True \
